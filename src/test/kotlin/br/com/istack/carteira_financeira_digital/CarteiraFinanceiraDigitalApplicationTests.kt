@@ -5,8 +5,10 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.boot.runApplication
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CarteiraFinanceiraDigitalApplicationTests {
 
 	@Test
