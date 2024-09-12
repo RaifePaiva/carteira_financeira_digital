@@ -1,0 +1,76 @@
+
+name: CI/CD for Spring Boot
+
+# Dispara o workflow em eventos de push e pull request
+on:
+  push:
+    branches:
+      - '**'  # Monitora todas as branches
+  pull_request:
+    branches:
+      - '**'  # Monitora todas as branches
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Faz o checkout do código
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Configura o Java 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'adopt'
+
+      # Step 3: Executa os testes e loga o erro em caso de falha
+      - name: Run tests
+        run: mvn clean test
+        continue-on-error: false  # Continua mesmo que os testes falhem
+      - name: Log test result if failed
+        if: failure()  # Só executa se os testes falharem
+        run: |
+          echo "Some tests have failed, check the logs for more details."
+
+      # Step 4: Verifica cobertura de código com Jacoco e falha se for menor que 80%
+      - name: Verify code coverage
+        run: mvn jacoco:report
+      - name: Check coverage threshold
+        run: |
+          COVERAGE=$(mvn jacoco:check | grep -oP '(?<=instruction rate: )\d+(?=%)')
+          echo "Coverage: $COVERAGE%"
+          if [ "$COVERAGE" -lt 80 ]; then
+            echo "Coverage is less than 80%, failing the build."
+            exit 1
+          fi
+
+      # Step 5: Build da aplicação
+      - name: Build application
+        run: mvn clean package
+
+  deploy:
+    needs: build  # O job de deploy depende do sucesso do job de build
+    runs-on: ubuntu-latest
+
+    # Condição para rodar apenas nas branches dev, hom, e prod
+    if: github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/hom' || github.ref == 'refs/heads/prod'
+
+    steps:
+      # Step 6: Faz o checkout do código
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 7: Log in to DockerHub
+      - name: Log in to DockerHub
+        run: echo "${{ secrets.DOCKER_HUB_PWD }}" | docker login -u "${{ secrets.DOCKER_HUB_USER }}" --password-stdin
+
+      # Step 8: Build a Docker image
+      - name: Build Docker image
+        run: docker build . -t ${{ secrets.DOCKER_HUB_USER }}/spring-boot-app:${{ github.sha }}
+
+      # Step 9: Push Docker image to DockerHub
+      - name: Push Docker image to DockerHub
+        run: docker push ${{ secrets.DOCKER_HUB_USER }}/spring-boot-app:${{ github.sha }}

@@ -1,0 +1,9 @@
+
+spring:
+  application:
+    name: carteira_financeira_digital
+  main:
+    lazy-initialization: true
+
+server:
+  port: ${APPLICATION_PORT:8080}
