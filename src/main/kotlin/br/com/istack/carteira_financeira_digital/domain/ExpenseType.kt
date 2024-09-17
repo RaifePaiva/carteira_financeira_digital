@@ -1,4 +1,8 @@
 package br.com.istack.carteira_financeira_digital.domain
 
-class Renda {
+enum class ExpenseType {
+
+    FIXED,
+    VARIABLE
+
 }
