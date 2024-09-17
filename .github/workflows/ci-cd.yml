@@ -53,16 +53,16 @@ jobs:
         run: mvn jacoco:report
         continue-on-error: false
 
-#      - name: Check test coverage
-#        id: check-coverage
-#        run: |
-#          COVERAGE=$(mvn jacoco:check | grep -Po '(?<=INSTRUCTION).*?[\d.]+(?=%)')
-#          if (( $(echo "$COVERAGE < 85" | bc -l) )); then
-#            echo "Test coverage is below 85%, aborting..."
-#            exit 1
-#          else
-#            echo "Test coverage is sufficient ($COVERAGE%), continuing..."
-#          fi
+      - name: Check test coverage
+        id: check-coverage
+        run: |
+          COVERAGE=$(mvn jacoco:check | grep -Po '(?<=INSTRUCTION).*?[\d.]+(?=%)')
+          if (( $(echo "$COVERAGE < 85" | bc -l) )); then
+            echo "Test coverage is below 85%, aborting..."
+            exit 1
+          else
+            echo "Test coverage is sufficient ($COVERAGE%), continuing..."
+          fi
 
   build:
     runs-on: ubuntu-latest
